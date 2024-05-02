@@ -1,2 +1,5 @@
-npx env-enc set-pw
-npx env-enc set
+- npm i
+- input your env variables in a .env file
+- npm install -g typescript
+- tsc
+- node dist/main-single-feed.js 0x000359843a543ee2fe414dc14c7e7920ef10f4372990b79d6361cdc0dd1ba782 (e.g. for ETH/USD)

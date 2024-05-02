@@ -1,90 +1,107 @@
-// decoder.ts
-
 import { ethers } from "ethers";
 
-interface FeedID {
-  value: string; // This would be equivalent to the `mercuryutils.FeedID`
-  version: number; // Placeholder for the actual version extraction logic
-}
-
-interface V3Report {
-  validFromTimestamp: number;
-  observationsTimestamp: number;
-  nativeFee: BigInt;
-  linkFee: BigInt;
-  expiresAt: number;
-  benchmarkPrice: BigInt;
-  bid: BigInt;
-  ask: BigInt;
-}
-
-interface ReportWithContext {
-  feedId: FeedID;
-  feedVersion: number;
-  v3Report?: V3Report;
-  round: number;
-  epoch: number;
-  digest: Uint8Array;
-}
-
-interface FullReport {
-  reportContext: [Uint8Array, Uint8Array, Uint8Array];
-  reportBlob: Uint8Array;
-  rawRs: Uint8Array[];
-  rawSs: Uint8Array[];
-  rawVs: Uint8Array;
-}
-
 const abi = [
-  "function decodeFullReport(bytes) external returns (bytes32[3], bytes, bytes32[], bytes32[], bytes32)",
+  {
+    inputs: [
+      { internalType: "bytes32[3]", name: "reportContext", type: "bytes32[3]" },
+      { internalType: "bytes", name: "reportBlob", type: "bytes" },
+      { internalType: "bytes32[]", name: "rawRs", type: "bytes32[]" },
+      { internalType: "bytes32[]", name: "rawSs", type: "bytes32[]" },
+      { internalType: "bytes32", name: "rawVs", type: "bytes32" },
+    ],
+    name: "decodeFullReport",
+    outputs: [
+      { internalType: "bytes32[3]", name: "reportContext", type: "bytes32[3]" },
+      { internalType: "bytes", name: "reportBlob", type: "bytes" },
+      { internalType: "bytes32[]", name: "rawRs", type: "bytes32[]" },
+      { internalType: "bytes32[]", name: "rawSs", type: "bytes32[]" },
+      { internalType: "bytes32", name: "rawVs", type: "bytes32" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
 ];
-const reportDecoder = new ethers.utils.Interface(abi);
 
-function decodeFullReport(fullReport: Uint8Array): FullReport {
-  const dataHex = ethers.utils.hexlify(fullReport);
+const iface = new ethers.utils.Interface(abi);
+
+function decodeFullReport(encodedData: Uint8Array): any {
+  const types = iface.fragments[0].inputs.map((input) => input.type);
+
+  const decoded = ethers.utils.defaultAbiCoder.decode(types, encodedData);
+
+  return {
+    reportContext: decoded[0],
+    reportBlob: decoded[1],
+    rawRs: decoded[2],
+    rawSs: decoded[3],
+    rawVs: decoded[4],
+  };
+}
+
+const reportBlobAbi = [
+  { type: "bytes32", name: "feedId" },
+  { type: "uint32", name: "validFromTimestamp" },
+  { type: "uint32", name: "observationsTimestamp" },
+  { type: "uint192", name: "nativeFee" },
+  { type: "uint192", name: "linkFee" },
+  { type: "uint32", name: "expiresAt" },
+  { type: "int192", name: "price" },
+  { type: "int192", name: "bid" },
+  { type: "int192", name: "ask" },
+];
+
+function decodeV3Report(reportBlobHex: string): void {
   try {
-    const decoded = reportDecoder.decodeFunctionData(
-      "decodeFullReport",
-      dataHex
+    const decodedBlob = ethers.utils.defaultAbiCoder.decode(
+      reportBlobAbi.map((item) => item.type),
+      ethers.utils.arrayify(reportBlobHex)
     );
-    return {
-      reportContext: [decoded[0][0], decoded[0][1], decoded[0][2]],
-      reportBlob: decoded[1],
-      rawRs: decoded[2],
-      rawSs: decoded[3],
-      rawVs: decoded[4],
-    };
+
+    console.log("Decoded V3 Report Details:");
+    console.log("-------------------------");
+    console.log(`Feed ID: ${decodedBlob[0]}`);
+    console.log(`Valid From Timestamp: ${decodedBlob[1].toString()}`);
+    console.log(`Observations Timestamp: ${decodedBlob[2].toString()}`);
+    console.log(
+      `Native Fee: ${ethers.utils.formatUnits(decodedBlob[3], "wei")}`
+    );
+    console.log(`Link Fee: ${ethers.utils.formatUnits(decodedBlob[4], "wei")}`);
+    console.log(`Expires At: ${decodedBlob[5].toString()}`);
+    console.log(`Price: ${decodedBlob[6].toString()}`);
+    console.log(`Bid: ${decodedBlob[7].toString()}`);
+    console.log(`Ask: ${decodedBlob[8].toString()}`);
   } catch (error) {
     console.error("Failed to decode report:", error);
-    throw new Error("Decoding failed");
   }
 }
 
-function decodeReportData(reportBlob: Uint8Array): {
-  feedId: FeedID;
-  report: V3Report | null;
-} {
-  const feedIdBytes = new Uint8Array(reportBlob.slice(0, 32));
-  const feedId = {
-    value: ethers.utils.hexlify(feedIdBytes),
-    version: parseInt(ethers.utils.hexlify(feedIdBytes.slice(0, 1)), 16), // Assuming version is stored in the first byte
-  };
+// function getNumber(value: ethers.BigNumberish): number {
+//   if (typeof value === "number") {
+//     return value;
+//   } else if (ethers.BigNumber.isBigNumber(value)) {
+//     return value.toNumber();
+//   } else if (typeof value === "bigint") {
+//     return Number(value);
+//   } else {
+//     return parseInt(value.toString(), 10);
+//   }
+// }
 
-  // actual decoding logic here based on the feed version (only v3 for now)
-  return {
-    feedId,
-    report: null, // assuming decoding logic will populate this based on version
-  };
+function processFullReport(hexData: string): void {
+  const bytesData = ethers.utils.arrayify(hexData);
+
+  try {
+    const decodedReport = decodeFullReport(bytesData);
+    console.log("-------------------------");
+    console.log("Decoded Report:", decodedReport);
+    console.log("-------------------------");
+
+    if (decodedReport.reportBlob) {
+      decodeV3Report(decodedReport.reportBlob);
+    }
+  } catch (error) {
+    console.error("Failed to decode report:", error);
+  }
 }
 
-function decodeFullReportAndReportData(fullReport: Uint8Array) {
-  const fullReportDecoded = decodeFullReport(fullReport);
-  // Assuming reportBlob is also a Uint8Array that needs further decoding
-  const reportData = decodeReportData(fullReportDecoded.reportBlob);
-  return {
-    fullReport: fullReportDecoded,
-    reportData: reportData,
-  };
-}
-
-export { decodeFullReportAndReportData };
+export { processFullReport };
