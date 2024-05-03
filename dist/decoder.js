@@ -65,17 +65,6 @@ function decodeV3Report(reportBlobHex) {
         console.error("Failed to decode report:", error);
     }
 }
-// function getNumber(value: ethers.BigNumberish): number {
-//   if (typeof value === "number") {
-//     return value;
-//   } else if (ethers.BigNumber.isBigNumber(value)) {
-//     return value.toNumber();
-//   } else if (typeof value === "bigint") {
-//     return Number(value);
-//   } else {
-//     return parseInt(value.toString(), 10);
-//   }
-// }
 function processFullReport(hexData) {
     console.log("Payload for onchain verification:");
     console.log("---------------------------------");
