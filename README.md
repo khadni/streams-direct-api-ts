@@ -1,4 +1,4 @@
-# Data Streams - Streams Direct implementation (TypeScript)
+# Data Streams - Streams Direct implementation - API (TypeScript)
 
 ## Prerequisites
 
