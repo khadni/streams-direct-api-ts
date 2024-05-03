@@ -58,7 +58,7 @@ function decodeV3Report(reportBlobHex: string): void {
     );
 
     console.log("Decoded V3 Report Details:");
-    console.log("-------------------------");
+    console.log("--------------------------");
     console.log(`Feed ID: ${decodedBlob[0]}`);
     console.log(`Valid From Timestamp: ${decodedBlob[1].toString()}`);
     console.log(`Observations Timestamp: ${decodedBlob[2].toString()}`);
@@ -75,26 +75,19 @@ function decodeV3Report(reportBlobHex: string): void {
   }
 }
 
-// function getNumber(value: ethers.BigNumberish): number {
-//   if (typeof value === "number") {
-//     return value;
-//   } else if (ethers.BigNumber.isBigNumber(value)) {
-//     return value.toNumber();
-//   } else if (typeof value === "bigint") {
-//     return Number(value);
-//   } else {
-//     return parseInt(value.toString(), 10);
-//   }
-// }
-
 function processFullReport(hexData: string): void {
+  console.log("Payload for onchain verification:");
+  console.log("---------------------------------");
+  console.log(hexData);
+  console.log("");
+
   const bytesData = ethers.utils.arrayify(hexData);
 
   try {
     const decodedReport = decodeFullReport(bytesData);
-    console.log("-------------------------");
-    console.log("Decoded Report:", decodedReport);
-    console.log("-------------------------");
+    // console.log("-------------------------");
+    // console.log("Decoded Report:", decodedReport);
+    // console.log("-------------------------");
 
     if (decodedReport.reportBlob) {
       decodeV3Report(decodedReport.reportBlob);

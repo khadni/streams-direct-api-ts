@@ -106,51 +106,41 @@ export async function fetchSingleReportSingleFeed(
   }
 }
 
-// export async function fetchSingleReportManyFeeds(
-//   feedIds: string[]
-// ): Promise<SingleReport[]> {
-//   const baseUrl = process.env.BASE_URL;
-//   const clientId = process.env.CLIENT_ID;
-//   const userSecret = process.env.CLIENT_SECRET;
+export async function fetchSingleReportManyFeeds(
+  feedIds: string[]
+): Promise<SingleReport[]> {
+  const baseUrl = process.env.BASE_URL;
+  const clientId = process.env.CLIENT_ID;
+  const userSecret = process.env.CLIENT_SECRET;
 
-//   if (!baseUrl || !clientId || !userSecret) {
-//     throw new Error("Missing required environment variables");
-//   }
+  if (!baseUrl || !clientId || !userSecret) {
+    throw new Error("Missing required environment variables");
+  }
 
-//   const timestamp = Date.now() - 500;
+  const timestamp = Date.now();
+  const params = new URLSearchParams({
+    feedIDs: feedIds.join(","),
+    timestamp: Math.floor(timestamp / 1000).toString(),
+  });
 
-//   const params = new URLSearchParams({
-//     feedIDs: feedIds.join(","),
-//     timestamp: Math.floor(timestamp / 1000).toString(),
-//   });
+  const url = `https://${baseUrl}${bulkPath}?${params.toString()}`;
+  const headers = generateAuthHeaders("GET", url, clientId, userSecret);
 
-//   const req = {
-//     method: "GET",
-//     url: `https://${baseUrl}${bulkPath}`,
-//     params,
-//     headers: generateAuthHeaders(
-//       "GET",
-//       `${bulkPath}?${params.toString()}`,
-//       clientId,
-//       userSecret
-//     ),
-//   };
-
-//   console.log("base: ", baseUrl);
-//   console.log("header: ", req.headers);
-//   console.log("params: ", params.toString());
-
-//   try {
-//     const response = await axios.request(req);
-//     if (response.status !== 200) {
-//       throw new Error(
-//         `Unexpected status code ${response.status}: ${response.data}`
-//       );
-//     }
-//     const res: BulkReportResponse = response.data;
-//     return res.reports;
-//   } catch (error) {
-//     console.error(error);
-//     throw error;
-//   }
-// }
+  try {
+    const response = await axios.get<BulkReportResponse>(url, {
+      headers: { ...headers },
+    });
+    if (response.status !== 200) {
+      throw new Error(`HTTP Error: ${response.status}`);
+    }
+    return response.data.reports;
+  } catch (error) {
+    console.error("HTTP Request Failed:", error);
+    if (axios.isAxiosError(error) && error.response) {
+      console.error("Status:", error.response.status);
+      console.error("Data:", error.response.data);
+      console.error("Headers:", error.response.headers);
+    }
+    throw error;
+  }
+}

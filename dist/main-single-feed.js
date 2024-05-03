@@ -11,10 +11,12 @@ async function main() {
         }
         console.log("Fetching single report for feed ID:", feedId);
         const report = await (0, client_1.fetchSingleReportSingleFeed)(feedId);
-        console.log("-------------------------");
-        console.log("Report received:", report);
+        // console.log("Report received:", report);
         if (typeof report.fullReport === "string") {
-            (0, decoder_1.processFullReport)(report.fullReport); // Use the imported function directly
+            console.log("\n=================================================================================================\n\nProcessing report for Feed ID: " +
+                report.feedID +
+                "\n");
+            (0, decoder_1.processFullReport)(report.fullReport);
         }
         else {
             console.error("Expected fullReport to be a string");

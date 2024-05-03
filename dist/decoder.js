@@ -50,7 +50,7 @@ function decodeV3Report(reportBlobHex) {
     try {
         const decodedBlob = ethers_1.ethers.utils.defaultAbiCoder.decode(reportBlobAbi.map((item) => item.type), ethers_1.ethers.utils.arrayify(reportBlobHex));
         console.log("Decoded V3 Report Details:");
-        console.log("-------------------------");
+        console.log("--------------------------");
         console.log(`Feed ID: ${decodedBlob[0]}`);
         console.log(`Valid From Timestamp: ${decodedBlob[1].toString()}`);
         console.log(`Observations Timestamp: ${decodedBlob[2].toString()}`);
@@ -77,12 +77,16 @@ function decodeV3Report(reportBlobHex) {
 //   }
 // }
 function processFullReport(hexData) {
+    console.log("Payload for onchain verification:");
+    console.log("---------------------------------");
+    console.log(hexData);
+    console.log("");
     const bytesData = ethers_1.ethers.utils.arrayify(hexData);
     try {
         const decodedReport = decodeFullReport(bytesData);
-        console.log("-------------------------");
-        console.log("Decoded Report:", decodedReport);
-        console.log("-------------------------");
+        // console.log("-------------------------");
+        // console.log("Decoded Report:", decodedReport);
+        // console.log("-------------------------");
         if (decodedReport.reportBlob) {
             decodeV3Report(decodedReport.reportBlob);
         }
