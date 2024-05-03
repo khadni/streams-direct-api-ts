@@ -1,5 +1,5 @@
-import { fetchSingleReportSingleFeed } from "./client";
-import { processFullReport } from "./decoder";
+import { fetchSingleReportSingleFeed } from "./client/client";
+import { processFullReport } from "./internal/decoder";
 
 async function main() {
   try {

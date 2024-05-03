@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("./client");
-const decoder_1 = require("./decoder");
+const client_1 = require("./client/client");
+const decoder_1 = require("./internal/decoder");
 async function main() {
     try {
         const feedId = process.argv[2];
